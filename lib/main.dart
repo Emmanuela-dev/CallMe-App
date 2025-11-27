@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'dart:convert';
 
 void main() {
@@ -85,16 +86,22 @@ class _PhoneDialerPageState extends State<PhoneDialerPage> {
     });
   }
 
-  void _dial() {
+  void _dial() async {
     final phoneNumber = _phoneController.text.trim();
     if (phoneNumber.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a phone number')));
       return;
     }
-    setState(() {
-      _isCalling = true;
-    });
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) => CallingScreen(phoneNumber: phoneNumber, contactName: null, onEndCall: () { Navigator.of(context).pop(); setState(() { _isCalling = false; }); } )));
+    final messenger = ScaffoldMessenger.of(context);
+    bool? res = await FlutterPhoneDirectCaller.callNumber(phoneNumber);
+    if (res == true) {
+      setState(() {
+        _isCalling = true;
+      });
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => CallingScreen(phoneNumber: phoneNumber, contactName: null, onEndCall: () { Navigator.of(context).pop(); setState(() { _isCalling = false; }); } )));
+    } else {
+      messenger.showSnackBar(const SnackBar(content: Text('Cannot make call')));
+    }
   }
 
   void _endCall() {
@@ -103,6 +110,7 @@ class _PhoneDialerPageState extends State<PhoneDialerPage> {
     });
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Call ended')));
   }
+
 
   @override
   void dispose() {
@@ -396,9 +404,9 @@ class _ContactsPageState extends State<ContactsPage> {
       // If no contacts, add some sample ones
       setState(() {
         _contacts = [
-          Contact(name: 'John Doe', phone: '+1234567890'),
-          Contact(name: 'Jane Smith', phone: '+0987654321'),
-          Contact(name: 'Bob Johnson', phone: '+1122334455'),
+          Contact(name: 'Davis', phone: '+254712345678'),
+          Contact(name: 'Hokas', phone: '+254733123456'),
+          Contact(name: 'Mitchel', phone: '+254700112233'),
         ];
       });
       _saveContacts();
